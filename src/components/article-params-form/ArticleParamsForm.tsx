@@ -32,35 +32,34 @@ export const ArticleParamsForm = ({
 	submit,
 	update,
 }: ArticleParamsProps) => {
-	const inputRef = useRef<HTMLFormElement | null>(null);
+	const formRef = useRef<HTMLFormElement | null>(null);
 	const [formIsOpen, setFormIsOpen] = useState(false);
 
 	const handleOpen = () => {
 		setFormIsOpen(!formIsOpen);
 	};
 
-	const handleEscape = (e: KeyboardEvent) => {
-		e.key === 'Escape' && setFormIsOpen(false);
-	};
-
-	const handleClose = () => {
-		setFormIsOpen(false);
-	};
-
-	const addEventListenerHandler = () => {
-		document.addEventListener('mousedown', handleClose);
-	};
-
-	const removeEventListenerHandler = () => {
-		document.removeEventListener('mousedown', handleClose);
-	};
-
 	useEffect(() => {
-		if (formIsOpen) {
-			document.addEventListener('keydown', handleEscape);
+		if (!formIsOpen) {
+			return;
 		}
+
+		const handleEscape = (e: KeyboardEvent) => {
+			e.key === 'Escape' && setFormIsOpen(false);
+		};
+
+		const handleClose = (e: MouseEvent) => {
+			if (formRef.current && !formRef.current.contains(e.target as Node)) {
+				setFormIsOpen(false);
+			}
+		};
+
+		document.addEventListener('keydown', handleEscape);
+		document.addEventListener('mousedown', handleClose);
+
 		return () => {
 			document.removeEventListener('keydown', handleEscape);
+			document.removeEventListener('mousedown', handleClose);
 		};
 	}, [formIsOpen]);
 
@@ -84,11 +83,9 @@ export const ArticleParamsForm = ({
 		<>
 			<ArrowButton isOpen={formIsOpen} onClick={handleOpen} />
 			<aside
-				className={clsx(styles.container, formIsOpen && styles.container_open)}
-				onMouseLeave={addEventListenerHandler}
-				onMouseEnter={removeEventListenerHandler}>
+				className={clsx(styles.container, formIsOpen && styles.container_open)}>
 				<form
-					ref={inputRef}
+					ref={formRef}
 					className={styles.form}
 					onSubmit={handleSubmit}
 					onReset={handleReset}>
